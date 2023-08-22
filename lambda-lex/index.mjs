@@ -1,8 +1,4 @@
 import { LexRuntimeV2Client, RecognizeTextCommand} from "@aws-sdk/client-lex-runtime-v2"; 
-import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
-
-const dynamo = new DynamoDBClient();
-const tableName = process.env.tableName;
 
 export const handler = async (event) => {  
     console.log('## ENVIRONMENT VARIABLES: ' + JSON.stringify(process.env));
@@ -35,26 +31,6 @@ export const handler = async (event) => {
         };
 
         const expirationTime = Math.round(new Date().getTime()/1000 + 24*60*60); // 1 day
-
-        var dbParams = {
-          TableName: tableName,
-          Item: {
-            msgId: { S: msgId },
-            result: { S: data['messages'][0].content},
-            ttl: { N: '' +expirationTime } 
-          },
-        };
-        console.log('dbParams: ' + JSON.stringify(dbParams));
-
-        // backup the result into dynamodb 
-        try {
-          const data = await dynamo.send(new PutItemCommand(dbParams));
-          console.log(data);
-          
-          //isCompleted = true;
-        } catch (err) {
-          console.error(err);
-        }
       }
       else {
         response = {
